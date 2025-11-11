@@ -1,42 +1,73 @@
 ﻿using System;
 
-// Прототип
-public abstract class Shape
+class Drink
 {
-    public string Color { get; set; }
-    public Shape(string color) { Color = color; }
+    public string Name { get; set; }
+    public int Price { get; set; }
 
-    public abstract Shape Clone();
-    public abstract void Display();
-}
-
-// Конкретний прототип
-public class Circle : Shape
-{
-    public int Radius { get; set; }
-    public Circle(string color, int radius) : base(color) { Radius = radius; }
-
-    public override Shape Clone()
+    public Drink(string name, int price)
     {
-        return new Circle(this.Color, this.Radius);
-    }
-
-    public override void Display()
-    {
-        Console.WriteLine($"Коло: колір={Color}, радіус={Radius}");
+        Name = name;
+        Price = price;
     }
 }
 
-// Клієнт
+class Barista
+{
+    public string Name { get; set; }
+
+    public Barista(string name)
+    {
+        Name = name;
+    }
+
+    public void MakeDrink(Drink drink, Customer customer)
+    {
+        Console.WriteLine($"{Name} готує {drink.Name} для {customer.Name}.");
+        customer.ReceiveDrink(drink);
+    }
+}
+
+class Customer
+{
+    public string Name { get; set; }
+
+    public Customer(string name)
+    {
+        Name = name;
+    }
+
+    public void OrderDrink(Barista barista)
+    {
+        Console.WriteLine("Виберіть напій: 1. Матча 2. Лате на кокосовому 3. Чай каркаде");
+        string choice = Console.ReadLine() ?? "1";
+
+        Drink drink = choice switch
+        {
+            "1" => new Drink("Матча", 50),
+            "2" => new Drink("Лате на кокосовому", 70),
+            "3" => new Drink("Чай каркаде", 40),
+            _ => new Drink("Вода", 20)
+        };
+
+        barista.MakeDrink(drink, this);
+    }
+
+    public void ReceiveDrink(Drink drink)
+    {
+        Console.WriteLine($"{Name} отримав(ла) {drink.Name}. Смачного!");
+    }
+}
+
 class Program
 {
     static void Main()
     {
-        Circle original = new Circle("Червоний", 10);
-        original.Display();
+        Console.WriteLine("Введіть ваше ім'я:");
+        string customerName = Console.ReadLine() ?? "Гість";
+        Customer customer = new Customer(customerName);
+        Barista barista = new Barista("Аліса");
 
-        Circle clone = (Circle)original.Clone();
-        clone.Color = "Синій";
-        clone.Display();
+        customer.OrderDrink(barista);
     }
 }
