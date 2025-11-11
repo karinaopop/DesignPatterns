@@ -1,56 +1,46 @@
 ﻿using System;
 
-// Реалізація (Implementor)
-public interface IDrawingAPI
+// Абстрактний обробник
+abstract class Handler
 {
-    void DrawCircle(double x, double y, double radius);
+    protected Handler next;
+
+    public void SetNext(Handler nextHandler)
+    {
+        next = nextHandler;
+    }
+
+    public abstract void Handle(int request);
 }
 
-// Конкретні реалізації
-public class OpenGLAPI : IDrawingAPI
+// Конкретні обробники
+class Operator : Handler
 {
-    public void DrawCircle(double x, double y, double radius)
+    public override void Handle(int request)
     {
-        Console.WriteLine($"OpenGL: Малюю коло в ({x},{y}) з радіусом {radius}");
+        if (request <= 10)
+            Console.WriteLine($"Оператор обробив запит {request}");
+        else if (next != null)
+            next.Handle(request);
     }
 }
 
-public class DirectXAPI : IDrawingAPI
+class Manager : Handler
 {
-    public void DrawCircle(double x, double y, double radius)
+    public override void Handle(int request)
     {
-        Console.WriteLine($"DirectX: Малюю коло в ({x},{y}) з радіусом {radius}");
+        if (request <= 20)
+            Console.WriteLine($"Менеджер обробив запит {request}");
+        else if (next != null)
+            next.Handle(request);
     }
 }
 
-// Абстракція
-public abstract class Shape
+class Director : Handler
 {
-    protected IDrawingAPI drawingAPI;
-
-    protected Shape(IDrawingAPI api)
+    public override void Handle(int request)
     {
-        drawingAPI = api;
-    }
-
-    public abstract void Draw();
-}
-
-// Конкретна абстракція
-public class Circle : Shape
-{
-    private double x, y, radius;
-
-    public Circle(double x, double y, double radius, IDrawingAPI api) : base(api)
-    {
-        this.x = x;
-        this.y = y;
-        this.radius = radius;
-    }
-
-    public override void Draw()
-    {
-        drawingAPI.DrawCircle(x, y, radius);
+        Console.WriteLine($"Директор обробив запит {request}");
     }
 }
 
@@ -59,10 +49,19 @@ class Program
 {
     static void Main()
     {
-        Shape circle1 = new Circle(5, 10, 7, new OpenGLAPI());
-        circle1.Draw();
+        Handler operatorHandler = new Operator();
+        Handler managerHandler = new Manager();
+        Handler directorHandler = new Director();
 
-        Shape circle2 = new Circle(15, 20, 10, new DirectXAPI());
-        circle2.Draw();
+        // Створення ланцюга
+        operatorHandler.SetNext(managerHandler);
+        managerHandler.SetNext(directorHandler);
+
+        int[] requests = { 5, 14, 25 };
+
+        foreach (int request in requests)
+        {
+            operatorHandler.Handle(request);
+        }
     }
 }
